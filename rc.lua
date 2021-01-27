@@ -6,14 +6,14 @@ pcall(require, "luarocks.loader")
 
 -- Standard awesome library
 local gears = require("gears")
-local var = true
+local volumebar_widget = require("awesome-wm-widgets.volumebar-widget.volumebar")
+
+local logout_menu_widget = require("awesome-wm-widgets.logout-menu-widget.logout-menu")
+local net_speed_widget = require("awesome-wm-widgets.net-speed-widget.net-speed")
 local awful = require("awful")
-local battery_widget = require("init")
 local cpu_widget = require("awesome-wm-widgets.cpu-widget.cpu-widget")
 local ram_widget = require("awesome-wm-widgets.ram-widget.ram-widget")
 local spotify_shell = require("awesome-wm-widgets.spotify-shell.spotify-shell")
-local volume_widget = require("awesome-wm-widgets.volume-widget.volume")
-local volume_widget_widget = volume_widget({display_notification = true})
 local spotify_widget = require("awesome-wm-widgets.spotify-widget.spotify")
 require("awful.autofocus")
 -- Widget and layout library
@@ -74,8 +74,8 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    --awful.layout.suit.floating,
     awful.layout.suit.tile,
+    awful.layout.suit.floating,
     awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
     awful.layout.suit.tile.top,
@@ -222,15 +222,18 @@ awful.screen.connect_for_each_screen(function(s)
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
+            s.mylayoutbox,
+            volumebar_widget(),
+            net_speed_widget(),
             wibox.widget.systray(),
-            layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout, 
+            logout_menu_widget(),
+            layout = wibox.layout.fixed.horizontal, 
+           -- mykeyboardlayout, 
             ram_widget(),
             mytextclock,
-            volume_widget(),
-       --     s.mylayoutbox,
             battery_widget(),
             cpu_widget(),
+
             
         },
     }
@@ -330,8 +333,7 @@ globalkeys = gears.table.join(
 
     -- Prompt
     awful.key({ modkey, "Shift" },            "p",     function () 
-        awful.spawn.with_shell("export LC_CTYPE=en_GB.utf8")
-        awful.spawn.with_shell("dmenu_run")end, 
+        awful.spawn.with_shell("dmenu_run >> ~/dmenu.log")end, 
               {description = "run prompt", group = "launcher"}), 
     --awful.key({ modkey, "Shift" },            "r",     function () awful.spawn.with_shell("dmenu_run") end),
     awful.key({ modkey }, "x",
@@ -359,9 +361,9 @@ globalkeys = gears.table.join(
         {description = "Launches dmenu"}),
      awful.key({ modkey, "Shift"}, "e",
         function()
-            awful.util.spawn("pcmanfm")
+            awful.util.spawn("nautilus")
         end,
-        {description = "Launches pcmanfm "}),   
+        {description = "Launches  nautilus"}),   
       awful.key({ modkey, "Shift"}, "s",
         function()
             awful.util.spawn("/var/lib/snapd/snap/bin/spotify")
@@ -372,7 +374,10 @@ globalkeys = gears.table.join(
 )
 
 clientkeys = gears.table.join( 
-    awful.key({ modkey,    "Shift"    }, "d", function () spotify_shell.launch() end, {description = "spotify shell", group = "music"}),
+    awful.key({modkey, "Shift", "Mod1", "Control"}, "s", function() awful.spawn.with_shell("shutdown now") end),
+    awful.key({modkey}, '.', function() awful.util.spawn("ibus-ui-emojier-plasma") end),
+    awful.key({modkey}, 'g', function() awful.spawn.with_shell("DRI_PRIME=1 godot") end ),
+    awful.key({modkey, "Shift"}, 'b', function() awful.spawn.with_shell("DRI_PRIME=1 blender") end ),
     awful.key({modkey, "Mod1"}, "Return", function(c) awful.client.setmaster()end),
     awful.key({modkey,"Shift" }, "n", function(c) c.minimized=true end),
     awful.key({ modkey,           }, "f",
@@ -411,11 +416,12 @@ clientkeys = gears.table.join(
             c:raise()
         end ,
         {description = "(un)maximize horizontally", group = "client"})
-)
+
 
 -- Bind all key numbers to tags.
 -- Be careful: we use keycodes to make it work on any keyboard layout.
 -- This should map on the top row of your keyboard, usually 1 to 9.
+) 
 for i = 1, 9 do
     globalkeys = gears.table.join(globalkeys,
         -- View tag only.
@@ -604,8 +610,8 @@ end)
 --    c:emit_signal("request::activate", "mouse_enter", {raise = false})
 --end)
 
-client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus c.opacity=1 end)
-client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal c.opacity=0.98 end)
+client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus c.opacity=1 c.border_width=3 end)
+client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal c.opacity=1 c.border_width=1 end)
 -- }}}
 
 -- gaps
@@ -614,9 +620,11 @@ beautiful.useless_gap = 12
 awful.spawn.with_shell("picom")
 awful.spawn.with_shell("/usr/lib/polkit-kde-authentication-agent-1")
 awful.spawn.with_shell("bluez")
-awful.spawn.with_shell("nitrogen --random --set-zoom ~/wallpaper")
+awful.spawn.with_shell("nitrogen --random --set-scaled ~/wallpaper")
 awful.spawn.with_shell("nm-applet &")
 awful.spawn.with_shell("~/.config/awesome/nitrogen.sh")
+awful.spawn.with_shell("volumeicon &")
+awful.spawn.with_shell("discord")
 
 
 
